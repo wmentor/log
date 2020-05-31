@@ -3,6 +3,7 @@ package log
 import (
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestLog(t *testing.T) {

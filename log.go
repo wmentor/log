@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -27,21 +28,26 @@ type Log struct {
 	wh      io.WriteCloser
 	mt      sync.Mutex
 	rmDelta time.Duration
+	cnFunc  context.CancelFunc
 }
 
 func periodMinute(t time.Time) string {
+	t = t.UTC()
 	return fmt.Sprintf("%04d%02d%02d%02d%02d", t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute())
 }
 
 func periodHour(t time.Time) string {
+	t = t.UTC()
 	return fmt.Sprintf("%04d%02d%02d%02d", t.Year(), int(t.Month()), t.Day(), t.Hour())
 }
 
 func periodDay(t time.Time) string {
+	t = t.UTC()
 	return fmt.Sprintf("%04d%02d%02d", t.Year(), int(t.Month()), t.Day())
 }
 
 func periodMonth(t time.Time) string {
+	t = t.UTC()
 	return fmt.Sprintf("%04d%02d", t.Year(), int(t.Month()))
 }
 
@@ -90,7 +96,31 @@ func New(opts string) (*Log, error) {
 		rmDelta: delInt,
 	}
 
-	l.rotate()
+	if l.name != "" {
+		l.rotate()
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		l.cnFunc = cancel
+
+		go func(ctx context.Context, l *Log) {
+
+			for {
+
+				select {
+
+				case <-ctx.Done():
+					return
+
+				case <-time.After(time.Second * 10):
+					l.rotate()
+
+				}
+
+			}
+
+		}(ctx, l)
+	}
 
 	return l, nil
 }
@@ -164,6 +194,12 @@ func (l *Log) makeFilename(period string) string {
 }
 
 func (l *Log) Close() {
+
+	if l.cnFunc != nil {
+		l.cnFunc()
+		l.cnFunc = nil
+	}
+
 	if l.wh != nil {
 		l.wh.Close()
 		l.wh = nil
