@@ -18,14 +18,15 @@ const (
 type periodFunc func(time.Time) string
 
 type Log struct {
-	period string
-	pf     periodFunc
-	stderr bool
-	stdout bool
-	name   string
-	path   string
-	wh     io.WriteCloser
-	mt     sync.Mutex
+	period  string
+	pf      periodFunc
+	stderr  bool
+	stdout  bool
+	name    string
+	path    string
+	wh      io.WriteCloser
+	mt      sync.Mutex
+	rmDelta time.Duration
 }
 
 func periodMinute(t time.Time) string {
@@ -51,33 +52,42 @@ func New(opts string) (*Log, error) {
 		return nil, err
 	}
 
+	keep := kv.GetInt("keep", 15)
+
 	var pf periodFunc
+	var delInt time.Duration
 
 	switch kv.GetString("period", "day") {
 
 	case "minute":
 		pf = periodMinute
+		delInt = time.Minute * time.Duration(keep)
 
 	case "hour":
 		pf = periodHour
+		delInt = time.Hour * time.Duration(keep)
 
 	case "day":
 		pf = periodDay
+		delInt = time.Hour * 24 * time.Duration(keep)
 
 	case "month":
 		pf = periodMonth
+		delInt = time.Hour * 24 * 30 * time.Duration(keep)
 
 	default:
 		pf = periodDay
+		delInt = time.Hour * 24 * time.Duration(keep)
 	}
 
 	l := &Log{
-		period: "",
-		pf:     pf,
-		stderr: kv.GetBool("stderr", false),
-		stdout: kv.GetBool("stdout", false),
-		name:   kv.GetString("name", ""),
-		path:   kv.GetString("path", "."),
+		period:  "",
+		pf:      pf,
+		stderr:  kv.GetBool("stderr", false),
+		stdout:  kv.GetBool("stdout", false),
+		name:    kv.GetString("name", ""),
+		path:    kv.GetString("path", "."),
+		rmDelta: delInt,
 	}
 
 	l.rotate()
@@ -108,9 +118,12 @@ func (l *Log) rotate() time.Time {
 
 		var err error
 
-		if l.wh, err = os.OpenFile(l.makeFilename(), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755); err != nil {
+		if l.wh, err = os.OpenFile(l.makeFilename(np), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755); err != nil {
 			return now
 		}
+
+		cleanPeriod := l.pf(now.Add(-l.rmDelta))
+		os.Remove(l.makeFilename(cleanPeriod))
 	}
 
 	return now
@@ -141,10 +154,10 @@ func (l *Log) Log(lvl string, msg string) {
 	}
 }
 
-func (l *Log) makeFilename() string {
+func (l *Log) makeFilename(period string) string {
 
 	if l.name != "" {
-		return strings.TrimRight(l.path, "/") + "/" + l.name + "-" + l.period + ".log"
+		return strings.TrimRight(l.path, "/") + "/" + l.name + "-" + period + ".log"
 	}
 
 	return ""

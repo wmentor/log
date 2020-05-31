@@ -13,7 +13,7 @@ func TestLog(t *testing.T) {
 	}
 	defer l.Close()
 
-	for i := 0 ; i < 20 ; i++ {
-		l.Log("info",strconv.Itoa(i+1))
+	for i := 0; i < 20; i++ {
+		l.Log("info", strconv.Itoa(i+1))
 	}
 }
