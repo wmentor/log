@@ -16,4 +16,5 @@ func TestLog(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		Write("info", strconv.Itoa(i+1))
 	}
+
 }

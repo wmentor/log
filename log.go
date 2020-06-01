@@ -29,11 +29,23 @@ type Log struct {
 	mt      sync.Mutex
 	rmDelta time.Duration
 	cnFunc  context.CancelFunc
+	level   int
 }
 
 var (
 	global *Log = nil
+	levels map[string]int
 )
+
+func init() {
+
+	levels = make(map[string]int)
+
+	for i, l := range []string{"trace", "debug", "info", "warn", "error", "fatal"} {
+		levels[l] = i + 1
+	}
+
+}
 
 func periodMinute(t time.Time) string {
 	t = t.UTC()
@@ -98,6 +110,7 @@ func Open(opts string) (*Log, error) {
 		name:    kv.GetString("name", ""),
 		path:    kv.GetString("path", "."),
 		rmDelta: delInt,
+		level:   levels[kv.GetString("level", "info")],
 	}
 
 	if l.name != "" {
@@ -172,23 +185,34 @@ func (l *Log) Write(lvl string, msg string) {
 		return
 	}
 
+	if l.level == 0 {
+		if lvl == "panic" {
+			panic(msg)
+		}
+		return
+	}
+
+	if levels[lvl] < l.level {
+		return
+	}
+
 	now := l.rotate()
 
 	l.mt.Lock()
 	defer l.mt.Unlock()
 
-	str := fmt.Sprintf("%s|%s| %s\n", now.UTC().Format(timeFormat), lvl, msg)
+	str := fmt.Sprintf("%s|%5s| %s\n", now.UTC().Format(timeFormat), lvl, msg)
 
 	if l.wh != nil {
-		fmt.Fprintf(l.wh, str)
+		fmt.Fprint(l.wh, str)
 	}
 
 	if l.stderr {
-		fmt.Fprintf(os.Stderr, str)
+		fmt.Fprint(os.Stderr, str)
 	}
 
 	if l.stdout {
-		fmt.Println(str)
+		fmt.Print(str)
 	}
 }
 
@@ -220,9 +244,9 @@ func (l *Log) Close() {
 
 func Close() {
 	global.Close()
+	global = nil
 }
 
 func Write(lvl string, msg string) {
 	global.Write(lvl, msg)
-	global = nil
 }
