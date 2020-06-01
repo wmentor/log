@@ -3,18 +3,17 @@ package log
 import (
 	"strconv"
 	"testing"
-	"time"
 )
 
 func TestLog(t *testing.T) {
 
-	l, err := New("path=. period=minute")
+	_, err := Open("path=. period=minute global=1")
 	if err != nil {
-		t.Fatal("New failed")
+		t.Fatal("Open failed")
 	}
-	defer l.Close()
+	defer Close()
 
 	for i := 0; i < 20; i++ {
-		l.Log("info", strconv.Itoa(i+1))
+		Write("info", strconv.Itoa(i+1))
 	}
 }

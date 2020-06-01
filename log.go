@@ -31,6 +31,10 @@ type Log struct {
 	cnFunc  context.CancelFunc
 }
 
+var (
+	global *Log = nil
+)
+
 func periodMinute(t time.Time) string {
 	t = t.UTC()
 	return fmt.Sprintf("%04d%02d%02d%02d%02d", t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute())
@@ -51,7 +55,7 @@ func periodMonth(t time.Time) string {
 	return fmt.Sprintf("%04d%02d", t.Year(), int(t.Month()))
 }
 
-func New(opts string) (*Log, error) {
+func Open(opts string) (*Log, error) {
 
 	kv, err := dsn.New(opts)
 	if err != nil {
@@ -122,6 +126,10 @@ func New(opts string) (*Log, error) {
 		}(ctx, l)
 	}
 
+	if kv.GetBool("global", false) {
+		global = l
+	}
+
 	return l, nil
 }
 
@@ -159,7 +167,7 @@ func (l *Log) rotate() time.Time {
 	return now
 }
 
-func (l *Log) Log(lvl string, msg string) {
+func (l *Log) Write(lvl string, msg string) {
 	if l == nil {
 		return
 	}
@@ -195,6 +203,10 @@ func (l *Log) makeFilename(period string) string {
 
 func (l *Log) Close() {
 
+	if l == nil {
+		return
+	}
+
 	if l.cnFunc != nil {
 		l.cnFunc()
 		l.cnFunc = nil
@@ -204,4 +216,13 @@ func (l *Log) Close() {
 		l.wh.Close()
 		l.wh = nil
 	}
+}
+
+func Close() {
+	global.Close()
+}
+
+func Write(lvl string, msg string) {
+	global.Write(lvl, msg)
+	global = nil
 }
