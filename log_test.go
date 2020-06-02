@@ -13,8 +13,11 @@ func TestLog(t *testing.T) {
 	}
 	defer Close()
 
-	for i := 0; i < 20; i++ {
-		Write("info", strconv.Itoa(i+1))
+	for i := 0; i < 5; i++ {
+		Trace(strconv.Itoa(i + 1))
+		Debug(strconv.Itoa(i + 1))
+		Info(strconv.Itoa(i + 1))
+		Warn(strconv.Itoa(i + 1))
+		Error(strconv.Itoa(i + 1))
 	}
-
 }

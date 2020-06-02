@@ -180,14 +180,17 @@ func (l *Log) rotate() time.Time {
 	return now
 }
 
-func (l *Log) Write(lvl string, msg string) {
+func (l *Log) write(lvl string, msg string) {
 	if l == nil {
+		if lvl == "fatal" {
+			os.Exit(1)
+		}
 		return
 	}
 
 	if l.level == 0 {
-		if lvl == "panic" {
-			panic(msg)
+		if lvl == "fatal" {
+			os.Exit(1)
 		}
 		return
 	}
@@ -213,6 +216,10 @@ func (l *Log) Write(lvl string, msg string) {
 
 	if l.stdout {
 		fmt.Print(str)
+	}
+
+	if lvl == "fatal" {
+		os.Exit(1)
 	}
 }
 
@@ -247,6 +254,54 @@ func Close() {
 	global = nil
 }
 
-func Write(lvl string, msg string) {
-	global.Write(lvl, msg)
+func write(lvl string, msg string) {
+	global.write(lvl, msg)
+}
+
+func (l *Log) Trace(msg string) {
+	l.write("trace", msg)
+}
+
+func (l *Log) Debug(msg string) {
+	l.write("debug", msg)
+}
+
+func (l *Log) Info(msg string) {
+	l.write("info", msg)
+}
+
+func (l *Log) Warn(msg string) {
+	l.write("warn", msg)
+}
+
+func (l *Log) Error(msg string) {
+	l.write("error", msg)
+}
+
+func (l *Log) Fatal(msg string) {
+	l.write("fatal", msg)
+}
+
+func Trace(msg string) {
+	write("trace", msg)
+}
+
+func Debug(msg string) {
+	write("debug", msg)
+}
+
+func Info(msg string) {
+	write("info", msg)
+}
+
+func Warn(msg string) {
+	write("warn", msg)
+}
+
+func Error(msg string) {
+	write("error", msg)
+}
+
+func Fatal(msg string) {
+	write("fatal", msg)
 }
