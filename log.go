@@ -139,7 +139,7 @@ func Open(opts string) (*Log, error) {
 		}(ctx, l)
 	}
 
-	if kv.GetBool("global", false) {
+	if kv.GetBool("global", true) {
 		global = l
 	}
 
