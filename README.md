@@ -90,3 +90,37 @@ Log object has functions Tracef/Debugf/Infof/Warnf/Errorf/Fatalf like Trace/Debu
 ```go
 log.Infof("Hello, %s!", "Mike")
 ```
+
+## Gin integration
+
+```go
+package main
+
+import (
+  "net/http"
+
+  "github.com/gin-gonic/gin"
+  "github.com/wmentor/log"
+)
+
+
+func main() {
+  
+  gin.SetMode(gin.ReleaseMode)
+  
+  router := gin.New()
+
+  log.Open("name= path=. stderr=1 period=day level=info")
+
+  router.Use(log.GinLogger())
+  router.Use(gin.Recovery())
+
+  router.GET("/user/:name", func(c *gin.Context) {
+    name := c.Param("name")
+    c.String(http.StatusOK, "Hello %s", name)
+  })
+
+  router.Run(":8080")
+}
+
+```
