@@ -5,12 +5,12 @@ Alternative log writer for Go.
 ## Summary
 
 * Writter in pure Go
-* Require Go version > 1.8
-* Async write log to files
+* Require Go version > 1.12
 * Can write log to stdin and stderr
 * Support formatted records
 * Automatical log rotate
 * Support log levels
+* Gin integration
 * MIT license
 
 ## Install
