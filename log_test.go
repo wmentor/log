@@ -19,5 +19,11 @@ func TestLog(t *testing.T) {
 		Info(strconv.Itoa(i + 1))
 		Warn(strconv.Itoa(i + 1))
 		Error(strconv.Itoa(i + 1))
+
+		Tracef("%d", i+1)
+		Debugf("%d", i+1)
+		Infof("%d", i+1)
+		Warnf("%d", i+1)
+		Errorf("%d", i+1)
 	}
 }

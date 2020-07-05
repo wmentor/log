@@ -282,6 +282,30 @@ func (l *Log) Fatal(msg string) {
 	l.write("fatal", msg)
 }
 
+func (l *Log) Tracef(format string, args ...interface{}) {
+	l.Trace(fmt.Sprintf(format, args...))
+}
+
+func (l *Log) Debugf(format string, args ...interface{}) {
+	l.Debug(fmt.Sprintf(format, args...))
+}
+
+func (l *Log) Infof(format string, args ...interface{}) {
+	l.Info(fmt.Sprintf(format, args...))
+}
+
+func (l *Log) Warnf(format string, args ...interface{}) {
+	l.Warn(fmt.Sprintf(format, args...))
+}
+
+func (l *Log) Errorf(format string, args ...interface{}) {
+	l.Error(fmt.Sprintf(format, args...))
+}
+
+func (l *Log) Fatalf(format string, args ...interface{}) {
+	l.Fatal(fmt.Sprintf(format, args...))
+}
+
 func Trace(msg string) {
 	write("trace", msg)
 }
@@ -304,4 +328,28 @@ func Error(msg string) {
 
 func Fatal(msg string) {
 	write("fatal", msg)
+}
+
+func Tracef(format string, args ...interface{}) {
+	Trace(fmt.Sprintf(format, args...))
+}
+
+func Debugf(format string, args ...interface{}) {
+	Debug(fmt.Sprintf(format, args...))
+}
+
+func Infof(format string, args ...interface{}) {
+	Info(fmt.Sprintf(format, args...))
+}
+
+func Warnf(format string, args ...interface{}) {
+	Warn(fmt.Sprintf(format, args...))
+}
+
+func Errorf(format string, args ...interface{}) {
+	Error(fmt.Sprintf(format, args...))
+}
+
+func Fatalf(format string, args ...interface{}) {
+	Fatal(fmt.Sprintf(format, args...))
 }
