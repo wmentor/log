@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -306,6 +307,12 @@ func (l *Log) Fatalf(format string, args ...interface{}) {
 	l.Fatal(fmt.Sprintf(format, args...))
 }
 
+func (l *Log) Stack(lvl string) {
+	buf := make([]byte, 1024*100)
+	n := runtime.Stack(buf, false)
+	l.write(lvl, string(buf[:n]))
+}
+
 func Trace(msg string) {
 	write("trace", msg)
 }
@@ -352,4 +359,8 @@ func Errorf(format string, args ...interface{}) {
 
 func Fatalf(format string, args ...interface{}) {
 	Fatal(fmt.Sprintf(format, args...))
+}
+
+func Stack(lvl string) {
+	global.Stack(lvl)
 }
